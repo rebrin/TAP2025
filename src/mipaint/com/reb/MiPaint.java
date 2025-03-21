@@ -2,20 +2,44 @@ package mipaint.com.reb;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class MiPaint implements MouseListener, MouseMotionListener {
     JFrame Ventana;
     Canvas canvas;
-    Integer xini,yini,xfin,yfin;
+    int xini,yini,xfin,yfin;
+
+    JMenuBar BarraMenu;
+    JMenu MenuFig;
+    JMenuItem MICirculo,MICuadrado;
+    Integer opcionFig; //0 circulo, 1 cuadrado.
     ArrayList<Pintable> Figuras=new ArrayList<>();
 
     MiPaint(){
-        xini=yini=xfin=yfin=0;
+        xini=yini=xfin=yfin=opcionFig=0;
         Ventana=new JFrame("Mi paint");
+        BarraMenu=new JMenuBar();
+        MenuFig=new JMenu("Figura");
+        MICirculo=new JMenuItem("Circulo");
+        MICuadrado=new JMenuItem("Cuadrado");
+        MICirculo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                opcionFig=0;
+            }
+        });
+        MICuadrado.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                opcionFig=1;
+            }
+        });
+        MenuFig.add(MICirculo);
+        MenuFig.add(MICuadrado);
+        BarraMenu.add(MenuFig);
+        Ventana.setJMenuBar(BarraMenu);
+
         canvas=new Canvas(){
             public void paint(Graphics g) {
             }
@@ -38,17 +62,27 @@ public class MiPaint implements MouseListener, MouseMotionListener {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        Graphics g=canvas.getGraphics();
-       xini=e.getX();
-       yini=e.getY();
+       // Graphics g=canvas.getGraphics();
+        xini=e.getX();
+        yini=e.getY();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        //aqui voy a guardar
-        int ancho=Math.abs(xini-e.getX());
-        int alto=Math.abs(yini-e.getY());
-        Figuras.add(new Circulo(xini,yini,ancho,alto));
+        switch (opcionFig){
+            case 0:
+                Figuras.add(new Circulo(Math.min(xini,e.getX())
+                        ,Math.min(yini,e.getY()),
+                        e.getX()-xini,
+                        e.getY()-yini));
+                break;
+            case 1:
+                Figuras.add(new Cuadrado(Math.min(xini,e.getX())
+                        ,Math.min(yini,e.getY())
+                        ,e.getX()-xini
+                        ,e.getY()-yini));
+                break;
+        }
         xini=0;
         yini=0;
     }
@@ -65,18 +99,29 @@ public class MiPaint implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-
         Graphics g=canvas.getGraphics();
         canvas.update(g);
         for (Pintable fig:Figuras){
             fig.pintar(g);
         }
+        //xini=;
+        //yini=;
         int ancho=Math.abs(xini-e.getX());
         int alto=Math.abs(yini-e.getY());
+        if(opcionFig ==0) {
 
-        g.drawOval(Math.min(xini,e.getX()),
-                Math.min(yini,e.getY()),ancho,alto);
+            g.drawOval(Math.min(xini, e.getX())
+                    , Math.min(yini, e.getY())
+                    , ancho, alto);
+        }
+        else{
+            g.drawRect(Math.min(xini,e.getX())
+                    ,Math.min(yini,e.getY())
+                    ,ancho,alto);
+        }
 
+        xfin=e.getX();
+        yfin=e.getY();
     }
 
     @Override
